@@ -3,6 +3,17 @@
 > [!WARNING]
 > This unofficial fork is for self-experimentation with a new API endpoint. It is not affiliated with the official llama.cpp or Jev projects.
 
+## SystemOne benchmark results
+
+Model: **Qwen3.8-27B** (`Qwen3.8-27B-UD-Q6_K_XL` GGUF), evaluated through the
+`/v1/systemone` endpoint (zero-shot).
+
+| benchmark | questions | accuracy | mean confidence | confidence when correct | confidence when wrong |
+| --- | --- | --- | --- | --- | --- |
+| MMLU | 14042 | 81.2% | 0.708 | 0.788 | 0.360 |
+| ARC-Challenge | 1172 | 97.0% | 0.905 | 0.918 | 0.455 |
+| GPQA Diamond | 198 | 44.4% | 0.243 | 0.377 | 0.135 |
+
 ![llama](https://raw.githubusercontent.com/ggml-org/llama.brand/refs/heads/master/cover/llama-cpp/cover-llama-cpp-dark.svg)
 
 <div align="center">
