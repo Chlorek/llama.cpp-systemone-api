@@ -2459,7 +2459,7 @@ private:
         queue_results.send(std::move(res));
     }
 
-    void send_systemone(const server_slot & slot, const llama_batch & batch) {
+    void send_systemone(const server_slot & slot, int32_t i_batch) {
         auto res = std::make_unique<server_task_result_systemone>();
         res->id       = slot.task->id;
         res->index    = slot.task->index;
@@ -2468,19 +2468,11 @@ private:
         const auto & labels = slot.task->systemone_labels;
         res->label_logits.reserve(labels.size());
 
-        for (int i = 0; i < batch.n_tokens; ++i) {
-            if (!batch.logits[i] || batch.seq_id[i][0] != slot.id) {
-                continue;
-            }
-
-            const float * logits = llama_get_logits_ith(ctx_tgt, i);
-            if (logits == NULL) {
-                SLT_ERR(slot, "failed to get logits, token = %d, seq_id = %d\n", batch.token[i], batch.seq_id[i][0]);
-
-                res->label_logits.assign(labels.size(), -1e30f);
-                break;
-            }
-
+        const float * logits = llama_get_logits_ith(slot.ctx_tgt, i_batch);
+        if (logits == NULL) {
+            SLT_ERR(slot, "failed to get logits, seq_id = %d\n", slot.id);
+            res->label_logits.assign(labels.size(), -1e30f);
+        } else {
             for (llama_token t : labels) {
                 res->label_logits.push_back(logits[t]);
             }
@@ -4384,7 +4376,7 @@ private:
                 }
 
                 if (slot.task->type == SERVER_TASK_TYPE_SYSTEMONE) {
-                    send_systemone(slot, batch_view);
+                    send_systemone(slot, slot.i_batch - off);
                     slot.release();
                     slot.i_batch = -1;
                     return;
@@ -5968,8 +5960,8 @@ void server_routes::init_routes() {
                     }
                 }
 
-                if (option_lines.size() > 16) {
-                    res->error(format_error_response("question \"" + q_ids[qi] + "\" has more than 16 options (answer slots A-P)", ERROR_TYPE_INVALID_REQUEST));
+                if (option_lines.size() > 26) {
+                    res->error(format_error_response("question \"" + q_ids[qi] + "\" has more than 26 options (answer slots A-Z)", ERROR_TYPE_INVALID_REQUEST));
                     return res;
                 }
 
